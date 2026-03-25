@@ -1,1 +1,1 @@
-# cechnobot
+Telegram Bot for Techno Dars
