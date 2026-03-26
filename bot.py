@@ -6,7 +6,7 @@ TOKEN = os.getenv("TOKEN")
 ADMIN_ID = 7228888995
 
 # رابط GitHub raw (غيره حسب حسابك)
-GITHUB_RAW = "https://raw.githubusercontent.com/USERNAME/REPO/main/media/"
+GITHUB_RAW = "BASE_URL = "https://raw.githubusercontent.com/appsprogram/cechnobot/main/media/""
 
 # ===== القوائم =====
 
