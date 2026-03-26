@@ -1,21 +1,23 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 import os
 
 TOKEN = os.getenv("TOKEN")
 ADMIN_ID = 7228888995
 
+# رابط GitHub raw (غيره حسب حسابك)
+GITHUB_RAW = "https://raw.githubusercontent.com/USERNAME/REPO/main/media/"
+
 # ===== القوائم =====
 
 def main_menu():
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("📚 خدماتنا", callback_data='services')],
-        [InlineKeyboardButton("❓ الأسئلة الشائعة", callback_data='faq')],
-        [InlineKeyboardButton("📩 إرسال استفسار", callback_data='ask')],
-        [InlineKeyboardButton("🌐 زيارة الموقع", url='https://your-site.com')]
+        [InlineKeyboardButton("📊 عرض إجابتنا للطلاب", callback_data='answers')],
+        [InlineKeyboardButton("📘 كيفية الاشتراك بمنصة ALEKS", callback_data='alek_help')],
+        [InlineKeyboardButton("📩 التواصل معنا", callback_data='contact')]
     ])
 
-def back_button():
+def back():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("🔙 رجوع", callback_data='home')]
     ])
@@ -24,9 +26,29 @@ def back_button():
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "👋 مرحباً بك في بوت تكنو درس الذكي\nاختر من القائمة:",
+        "مرحباً بك في بوت تكنو درس 👨‍💻\n"
+        "بوت مساعد حول الاستفسارات...\n\n"
+        "اختر من القائمة:",
         reply_markup=main_menu()
     )
+
+# ===== إرسال ملفات من GitHub =====
+
+async def send_media_by_prefix(context, chat_id, prefix):
+    files = [
+        "ALEKS1.jpg",
+        "ALEKS_video.mp4",
+        "other1.jpg"
+    ]
+
+    for f in files:
+        if f.lower().startswith(prefix.lower()):
+            url = GITHUB_RAW + f
+
+            if f.endswith(".mp4"):
+                await context.bot.send_video(chat_id=chat_id, video=url)
+            else:
+                await context.bot.send_photo(chat_id=chat_id, photo=url)
 
 # ===== الأزرار =====
 
@@ -39,74 +61,80 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # الرئيسية
     if data == "home":
         await query.edit_message_text(
-            "👋 القائمة الرئيسية:",
+            "القائمة الرئيسية:",
             reply_markup=main_menu()
         )
 
-    # الخدمات
-    elif data == "services":
-        await query.edit_message_text(
-            "📚 خدماتنا:\n\n"
-            "• حل الواجبات الجامعية\n"
-            "• مشاريع التخرج\n"
-            "• شروحات المواد\n\n"
-            "📩 تواصل معنا لطلب الخدمة",
-            reply_markup=back_button()
-        )
-
-    # FAQ
-    elif data == "faq":
+    # عرض الإجابات
+    elif data == "answers":
         keyboard = [
-            [InlineKeyboardButton("📩 كيف أرسل واجب؟", callback_data='q1')],
-            [InlineKeyboardButton("💰 كم السعر؟", callback_data='q2')],
-            [InlineKeyboardButton("⏱ وقت التسليم؟", callback_data='q3')],
+            [InlineKeyboardButton("📊 الإحصاء - ALEKS", callback_data='aleks')],
+            [InlineKeyboardButton("📚 واجبات أخرى", callback_data='other')],
             [InlineKeyboardButton("🔙 رجوع", callback_data='home')]
         ]
-        await query.edit_message_text(
-            "❓ اختر سؤالك:",
+        await query.edit_message_text("اختر:", reply_markup=InlineKeyboardMarkup(keyboard))
+
+    elif data == "aleks":
+        await send_media_by_prefix(context, query.message.chat_id, "aleks")
+
+    elif data == "other":
+        await send_media_by_prefix(context, query.message.chat_id, "other")
+
+    # شرح ALEKS
+    elif data == "alek_help":
+
+        # 1
+        await context.bot.send_photo(
+            chat_id=query.message.chat_id,
+            photo=GITHUB_RAW + "help1.png",
+            caption="هل عندك تطبيق التحقق؟"
+        )
+
+        # 2
+        keyboard = [
+            [InlineKeyboardButton("📱 تحميل iPhone", url="https://apps.apple.com")],
+            [InlineKeyboardButton("🤖 تحميل Android", url="https://play.google.com")]
+        ]
+        await context.bot.send_message(
+            chat_id=query.message.chat_id,
+            text="تحميل تطبيق KAU Authenticator:",
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
 
-    elif data == "q1":
-        await query.edit_message_text(
-            "📩 أرسل الواجب مباشرة عبر البوت\nوسيتم الرد عليك",
-            reply_markup=back_button()
+        # 3
+        await context.bot.send_message(
+            chat_id=query.message.chat_id,
+            text="إذا لم تربط التطبيق:\n"
+                 "تواصل مع الدعم:\n"
+                 "+966126952209"
         )
 
-    elif data == "q2":
-        await query.edit_message_text(
-            "💰 السعر يعتمد على صعوبة الواجب\n📩 راسلنا للتفاصيل",
-            reply_markup=back_button()
+        # 4
+        await context.bot.send_photo(
+            chat_id=query.message.chat_id,
+            photo=GITHUB_RAW + "help2.png"
         )
 
-    elif data == "q3":
-        await query.edit_message_text(
-            "⏱ التسليم خلال 24 - 72 ساعة",
-            reply_markup=back_button()
+        # 5
+        await context.bot.send_photo(
+            chat_id=query.message.chat_id,
+            photo=GITHUB_RAW + "help3.png"
         )
-
-    # ارسال استفسار
-    elif data == "ask":
-        context.user_data['waiting'] = True
-        await query.edit_message_text(
-            "✍️ اكتب سؤالك الآن:",
-            reply_markup=back_button()
-        )
-
-# ===== الرسائل =====
-
-async def messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if context.user_data.get('waiting'):
-        user = update.message.from_user
-        text = update.message.text
 
         await context.bot.send_message(
-            chat_id=ADMIN_ID,
-            text=f"📩 استفسار جديد\n\n👤 {user.first_name}\n🆔 {user.id}\n\n📝 {text}"
+            chat_id=query.message.chat_id,
+            text="🔙 للرجوع للقائمة استخدم الزر",
+            reply_markup=back()
         )
 
-        await update.message.reply_text("✅ تم إرسال سؤالك")
-        context.user_data['waiting'] = False
+    # تواصل
+    elif data == "contact":
+        await query.edit_message_text(
+            "📩 للتواصل معنا:\n"
+            "واتساب: ...\n"
+            "تيليجرام: ...",
+            reply_markup=back()
+        )
 
 # ===== التشغيل =====
 
@@ -114,7 +142,6 @@ app = ApplicationBuilder().token(TOKEN).build()
 
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CallbackQueryHandler(buttons))
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, messages))
 
 print("Bot is running...")
 app.run_polling()
