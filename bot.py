@@ -72,6 +72,8 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # عرض الإجابات
     elif data == "answers":
+        # نرسل رسالة المستخدم ليظهر في المحادثة
+        await context.bot.send_message(chat_id=chat_id, text="📊 عرض إجابتنا للطلاب")
         await query.edit_message_text(
             "اختر:",
             reply_markup=InlineKeyboardMarkup(ANSWERS_MENU)
@@ -79,14 +81,19 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # الإحصاء ALEKS
     elif data == "aleks":
+        await context.bot.send_message(chat_id=chat_id, text="📊 الإحصاء - ALEKS")
         await send_media_by_prefix(context, chat_id, "ALEKS")
 
     # واجبات أخرى
     elif data == "other":
+        await context.bot.send_message(chat_id=chat_id, text="📚 واجبات أخرى")
         await send_media_by_prefix(context, chat_id, "other")
 
     # كيفية الاشتراك بـ ALEKS
     elif data == "alek_help":
+        # نرسل زر المستخدم أولاً
+        await context.bot.send_message(chat_id=chat_id, text="📘 كيفية الاشتراك بمنصة ALEKS")
+
         # 1. صورة help1
         await context.bot.send_photo(
             chat_id=chat_id,
@@ -108,8 +115,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # 3. التعليمات للدعم
         await context.bot.send_message(
             chat_id=chat_id,
-            text="إذا لم تربط التطبيق بعد:\nتواصل مع الدعم:\n"
-                 "+966126952209\n"
+            text="إذا لم تربط التطبيق بعد:\nتواصل مع الدعم:\n+966126952209\n"
                  "أرسل الاسم، الهوية، الرقم الجامعي، وكلمة المرور"
         )
 
@@ -126,6 +132,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # التواصل
     elif data == "contact":
+        await context.bot.send_message(chat_id=chat_id, text="📩 التواصل معنا")
         await query.edit_message_text(
             "📩 للتواصل معنا:\nواتساب: ...\nتيليجرام: ...",
             reply_markup=InlineKeyboardMarkup(BACK_BUTTON)
