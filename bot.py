@@ -32,8 +32,8 @@ MEDIA_FILES = [
     "ALEKS1.jpg",
     "ALEKS_video.mp4",
     "other1.jpg",
-    "help1.png",
-    "help2.png",
+    "help1.jpg",
+    "help2.jpg",
     "help3.png"
 ]
 
@@ -97,7 +97,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # 1. صورة help1
         await context.bot.send_photo(
             chat_id=chat_id,
-            photo=GITHUB_RAW + "help1.png",
+            photo=GITHUB_RAW + "help1.jpg",
             caption="هل عندك تطبيق التحقق المربوط بالبلاك بورد؟"
         )
 
