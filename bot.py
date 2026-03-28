@@ -4,11 +4,13 @@ from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandle
 import os
 
 # ===== إعدادات البوت =====
-TOKEN = os.getenv("TOKEN")  # توكن البوت في Railway Variables
-ADMIN_ID = 7228888995
+TOKEN = os.getenv("TOKEN")
 
-# رابط GitHub raw للملفات
+# رابط GitHub للصور فقط
 GITHUB_RAW = "https://raw.githubusercontent.com/appsprogram/cechnobot/main/media/"
+
+# رابط الفيديو (Catbox)
+ALEKS_VIDEO_URL = "https://files.catbox.moe/a9l29d.mp4"
 
 # ===== القوائم =====
 MAIN_MENU = [
@@ -27,10 +29,9 @@ BACK_BUTTON = [
     [InlineKeyboardButton("🔙 رجوع", callback_data='home')]
 ]
 
-# ===== ملفات الميديا =====
+# ===== الصور فقط =====
 MEDIA_FILES = [
     "ALEKS1.jpg",
-    "ALEKS_video.mp4",
     "other1.jpg",
     "help1.jpg",
     "help2.jpg",
@@ -46,15 +47,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=InlineKeyboardMarkup(MAIN_MENU)
     )
 
-# ===== إرسال ملفات من GitHub =====
-async def send_media_by_prefix(context, chat_id, prefix):
+# ===== إرسال صور من GitHub =====
+async def send_images_by_prefix(context, chat_id, prefix):
     for f in MEDIA_FILES:
         if f.lower().startswith(prefix.lower()):
             url = GITHUB_RAW + f
-            if f.endswith(".mp4"):
-                await context.bot.send_video(chat_id=chat_id, video=url)
-            else:
-                await context.bot.send_photo(chat_id=chat_id, photo=url)
+            await context.bot.send_photo(chat_id=chat_id, photo=url)
 
 # ===== الأزرار =====
 async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -63,7 +61,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     data = query.data
     chat_id = query.message.chat.id
 
-    # القائمة الرئيسية
+    # الرئيسية
     if data == "home":
         await query.edit_message_text(
             "القائمة الرئيسية:",
@@ -72,61 +70,63 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # عرض الإجابات
     elif data == "answers":
-        # نرسل رسالة المستخدم ليظهر في المحادثة
         await context.bot.send_message(chat_id=chat_id, text="📊 عرض إجابتنا للطلاب")
         await query.edit_message_text(
             "اختر:",
             reply_markup=InlineKeyboardMarkup(ANSWERS_MENU)
         )
 
-    # الإحصاء ALEKS
+    # ALEKS
     elif data == "aleks":
         await context.bot.send_message(chat_id=chat_id, text="📊 الإحصاء - ALEKS")
-        await send_media_by_prefix(context, chat_id, "ALEKS")
+
+        # إرسال الصور
+        await send_images_by_prefix(context, chat_id, "ALEKS")
+
+        # إرسال الفيديو من Catbox
+        await context.bot.send_video(
+            chat_id=chat_id,
+            video=ALEKS_VIDEO_URL,
+            caption="🎥 شرح ALEKS"
+        )
 
     # واجبات أخرى
     elif data == "other":
         await context.bot.send_message(chat_id=chat_id, text="📚 واجبات أخرى")
-        await send_media_by_prefix(context, chat_id, "other")
+        await send_images_by_prefix(context, chat_id, "other")
 
-    # كيفية الاشتراك بـ ALEKS
+    # كيفية الاشتراك
     elif data == "alek_help":
-        # نرسل زر المستخدم أولاً
         await context.bot.send_message(chat_id=chat_id, text="📘 كيفية الاشتراك بمنصة ALEKS")
 
-        # 1. صورة help1
         await context.bot.send_photo(
             chat_id=chat_id,
             photo=GITHUB_RAW + "help1.jpg",
             caption="هل عندك تطبيق التحقق المربوط بالبلاك بورد؟"
         )
 
-        # 2. روابط تحميل التطبيق
         keyboard = [
             [InlineKeyboardButton("📱 iPhone", url="https://apps.apple.com")],
             [InlineKeyboardButton("🤖 Android", url="https://play.google.com")]
         ]
+
         await context.bot.send_message(
             chat_id=chat_id,
             text="تحميل تطبيق KAU Authenticator:",
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
 
-        # 3. التعليمات للدعم
         await context.bot.send_message(
             chat_id=chat_id,
-            text="إذا لم تربط التطبيق بعد:\nتواصل مع الدعم:\n+966126952209\n"
-                 "أرسل الاسم، الهوية، الرقم الجامعي، وكلمة المرور"
+            text="إذا لم تربط التطبيق بعد:\nتواصل مع الدعم:\n+966126952209"
         )
 
-        # 4. صور help2 و help3
-        for img in ["help2.png", "help3.png"]:
+        for img in ["help2.jpg", "help3.png"]:
             await context.bot.send_photo(chat_id=chat_id, photo=GITHUB_RAW + img)
 
-        # 5. زر رجوع
         await context.bot.send_message(
             chat_id=chat_id,
-            text="🔙 للرجوع للقائمة الرئيسية استخدم الزر أدناه",
+            text="🔙 للرجوع:",
             reply_markup=InlineKeyboardMarkup(BACK_BUTTON)
         )
 
@@ -134,19 +134,14 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif data == "contact":
         await context.bot.send_message(chat_id=chat_id, text="📩 التواصل معنا")
         await query.edit_message_text(
-            "📩 للتواصل معنا:\nواتساب: ...\nتيليجرام: ...",
+            "📩 واتساب: ...\n📱 تيليجرام: ...",
             reply_markup=InlineKeyboardMarkup(BACK_BUTTON)
         )
-
-# ===== Error Handler =====
-async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
-    print(f"Update {update} caused error {context.error}")
 
 # ===== التشغيل =====
 app = ApplicationBuilder().token(TOKEN).build()
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CallbackQueryHandler(buttons))
-app.add_error_handler(error_handler)
 
 print("Bot is running...")
 app.run_polling()
